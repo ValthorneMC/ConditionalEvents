@@ -2,11 +2,14 @@ package ce.ajneb97.managers;
 
 import ce.ajneb97.ConditionalEvents;
 import ce.ajneb97.configs.PlayersConfigsManager;
+import ce.ajneb97.model.EventType;
+import ce.ajneb97.model.internal.ConditionEvent;
 import ce.ajneb97.model.player.GenericCallback;
 import ce.ajneb97.model.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
@@ -149,7 +152,7 @@ public class PlayerManager {
         }.runTaskAsynchronously(plugin);
     }
 
-    public void manageJoin(Player player){
+    public void manageJoin(Player player, PlayerJoinEvent event){
         // Load player data from file if exists
         plugin.getConfigsManager().getPlayerConfigsManager().loadConfig(player.getUniqueId(), playerData -> {
             if(playerData != null){
@@ -160,6 +163,9 @@ public class PlayerManager {
                     playerData.setModified(true);
                 }
             }
+
+            new ConditionEvent(plugin, player, event, EventType.PLAYER_JOIN, null)
+                    .checkEvent();
         });
     }
 

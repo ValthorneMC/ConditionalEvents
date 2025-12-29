@@ -49,10 +49,8 @@ public class PlayerEventsListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent event){
         Player player = event.getPlayer();
-        new ConditionEvent(plugin, player, event, EventType.PLAYER_JOIN, null)
-                .checkEvent();
 
-        plugin.getPlayerManager().manageJoin(player);
+        plugin.getPlayerManager().manageJoin(player,event);
 
         //Update notification
         String latestVersion = plugin.getUpdateCheckerManager().getLatestVersion();

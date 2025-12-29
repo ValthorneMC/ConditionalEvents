@@ -4,6 +4,7 @@ import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
+import java.util.Map;
 import java.util.Random;
 
 public class MathUtils {
@@ -80,5 +81,26 @@ public class MathUtils {
         }
 
         return true;
+    }
+
+    public static String getRandomKeyByWeight(Map<String, Integer> weights) {
+        int totalWeight = 0;
+        for (int weight : weights.values()) {
+            if (weight > 0) {
+                totalWeight += weight;
+            }
+        }
+
+        int random = new Random().nextInt(totalWeight) + 1;
+
+        int current = 0;
+        for (Map.Entry<String, Integer> entry : weights.entrySet()) {
+            current += entry.getValue();
+            if (random <= current) {
+                return entry.getKey();
+            }
+        }
+
+        return null;
     }
 }
