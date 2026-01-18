@@ -46,11 +46,17 @@ public class PlayerEventsListener implements Listener {
                 .checkEvent();
     }
 
+    @EventHandler(priority = EventPriority.MONITOR)
+    public void onPreJoinMonitor(AsyncPlayerPreLoginEvent event){
+        plugin.getPlayerManager().manageJoin(event);
+    }
+
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onJoin(PlayerJoinEvent event){
         Player player = event.getPlayer();
 
-        plugin.getPlayerManager().manageJoin(player,event);
+        new ConditionEvent(plugin, player, event, EventType.PLAYER_JOIN, null)
+                .checkEvent();
 
         //Update notification
         String latestVersion = plugin.getUpdateCheckerManager().getLatestVersion();
@@ -65,10 +71,7 @@ public class PlayerEventsListener implements Listener {
     public void onLeave(PlayerQuitEvent event){
         Player player = event.getPlayer();
 
-        plugin.getPlayerManager().manageLeave(player);
-
-        new ConditionEvent(plugin, player, event, EventType.PLAYER_LEAVE, null)
-                .checkEvent();
+        plugin.getPlayerManager().manageLeave(player,event);
     }
 
     @EventHandler(priority = EventPriority.HIGHEST)
@@ -202,14 +205,19 @@ public class PlayerEventsListener implements Listener {
             target = (LivingEntity) damaged;
         }
 
-
+        boolean isCritical = false;
+        ServerVersion serverVersion = ConditionalEvents.serverVersion;
+        if(plugin.getDependencyManager().isPaper() && serverVersion.serverVersionGreaterEqualThan(serverVersion,ServerVersion.v1_17_R1)){
+            isCritical = event.isCritical();
+        }
 
         ConditionEvent conditionEvent = new ConditionEvent(plugin, player, event, EventType.PLAYER_ATTACK, target);
         if(!conditionEvent.containsValidEvents()) return;
         conditionEvent.addVariables(
                 new StoredVariable("%damage%",MathUtils.truncate(event.getFinalDamage())+""),
                 new StoredVariable("%original_damage%",MathUtils.truncate(event.getDamage())+""),
-                new StoredVariable("%attack_type%", attackType)
+                new StoredVariable("%attack_type%", attackType),
+                        new StoredVariable("%is_critical%", isCritical+"")
         ).setCommonItemVariables(item,null)
                 .setCommonVictimVariables(damaged)
                 .checkEvent();

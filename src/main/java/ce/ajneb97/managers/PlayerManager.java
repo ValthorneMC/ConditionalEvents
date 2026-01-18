@@ -9,7 +9,9 @@ import ce.ajneb97.model.player.PlayerData;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.HashMap;
@@ -152,24 +154,30 @@ public class PlayerManager {
         }.runTaskAsynchronously(plugin);
     }
 
-    public void manageJoin(Player player, PlayerJoinEvent event){
-        // Load player data from file if exists
-        plugin.getConfigsManager().getPlayerConfigsManager().loadConfig(player.getUniqueId(), playerData -> {
-            if(playerData != null){
-                addPlayer(playerData);
-                if(playerData.getName() == null || !playerData.getName().equals(player.getName())){
-                    updatePlayerName(playerData.getName(),player.getName(),player.getUniqueId());
-                    playerData.setName(player.getName());
-                    playerData.setModified(true);
-                }
-            }
+    public void manageJoin(AsyncPlayerPreLoginEvent event){
+        if(!event.getLoginResult().equals(AsyncPlayerPreLoginEvent.Result.ALLOWED)){
+            return;
+        }
 
-            new ConditionEvent(plugin, player, event, EventType.PLAYER_JOIN, null)
-                    .checkEvent();
-        });
+        UUID uuid = event.getUniqueId();
+        String playerName = event.getName();
+
+        // Load player data from file if exists
+        PlayerData playerData = plugin.getConfigsManager().getPlayerConfigsManager().loadConfig(uuid);
+        if(playerData != null){
+            addPlayer(playerData);
+            if(playerData.getName() == null || !playerData.getName().equals(playerName)){
+                updatePlayerName(playerData.getName(),playerName,uuid);
+                playerData.setName(playerName);
+                playerData.setModified(true);
+            }
+        }
     }
 
-    public void manageLeave(Player player){
+    public void manageLeave(Player player, PlayerQuitEvent event){
+        new ConditionEvent(plugin, player, event, EventType.PLAYER_LEAVE, null)
+                .checkEvent();
+
         // Save player data into file and remove from map
         PlayerData playerData = getPlayer(player,false);
         if(playerData != null){

@@ -28,7 +28,32 @@ public class PlayersConfigsManager extends DataFolderConfigManager{
 		// No use for player config
 	}
 
-	public void loadConfig(UUID uuid, GenericCallback<PlayerData> callback){
+	public PlayerData loadConfig(UUID uuid){
+		PlayerData playerData = null;
+		CommonConfig playerConfig = getConfigFile(uuid+".yml",false);
+		if(playerConfig != null){
+			// If config exists
+			FileConfiguration config = playerConfig.getConfig();
+			String name = config.getString("name");
+
+			playerData = new PlayerData(uuid,name);
+			ArrayList<EventData> eventData = new ArrayList<>();
+			if(config.contains("events")){
+				for(String key : config.getConfigurationSection("events").getKeys(false)){
+					boolean oneTime = config.getBoolean("events."+key+".one_time");
+					long cooldown = config.getLong("events."+key+".cooldown");
+					EventData event = new EventData(key,cooldown,oneTime);
+
+					eventData.add(event);
+				}
+			}
+			playerData.setEventData(eventData);
+		}
+
+		return playerData;
+	}
+
+	public void loadConfigAsync(UUID uuid, GenericCallback<PlayerData> callback){
 		new BukkitRunnable(){
 			@Override
 			public void run() {

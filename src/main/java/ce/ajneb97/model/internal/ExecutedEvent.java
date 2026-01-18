@@ -5,7 +5,6 @@ import ce.ajneb97.api.ConditionalEventsEvent;
 import ce.ajneb97.managers.DebugManager;
 import ce.ajneb97.managers.EventsManager;
 import ce.ajneb97.model.CEEvent;
-import ce.ajneb97.model.EventType;
 import ce.ajneb97.model.StoredVariable;
 import ce.ajneb97.model.ToConditionGroup;
 import ce.ajneb97.model.actions.*;
@@ -177,22 +176,29 @@ public class ExecutedEvent {
                 }
             }else if(targeterType.equals(ActionTargeterType.TO_RANGE)){
                 String[] sep = parametersLine.split(";");
-                double range = Double.valueOf(sep[0]);
-                boolean includePlayer = Boolean.valueOf(sep[1]);
-                ArrayList<Player> globalPlayers = new ArrayList<Player>();
+                double range = Double.parseDouble(sep[0]);
+                boolean includePlayer = Boolean.parseBoolean(sep[1]);
+                boolean includeEntities = false;
+                if(sep.length > 2){
+                    includeEntities = Boolean.parseBoolean(sep[2]);
+                }
+
+                ArrayList<LivingEntity> globalEntities = new ArrayList<>();
                 if(includePlayer){
-                    globalPlayers.add(player);
+                    globalEntities.add(player);
                 }
                 for(Entity e : player.getWorld().getNearbyEntities(player.getLocation(), range, range, range)) {
                     if(e instanceof Player) {
                         Player p = (Player) e;
                         if(!p.getName().equals(player.getName())){
-                            globalPlayers.add(p);
+                            globalEntities.add(p);
                         }
+                    }else if(includeEntities && e instanceof LivingEntity){
+                        globalEntities.add((LivingEntity) e);
                     }
                 }
-                for(Player globalPlayer : globalPlayers){
-                    executeActionsFromToTarget(variablesProperties,globalPlayer,actionLine,actionType,apiType,isDebugActions,targeter,debugManager);
+                for(LivingEntity globalEntity : globalEntities){
+                    executeActionsFromToTarget(variablesProperties,globalEntity,actionLine,actionType,apiType,isDebugActions,targeter,debugManager);
                 }
             }else if(targeterType.equals(ActionTargeterType.TO_CONDITION)) {
                 String toConditionGroup = parametersLine;

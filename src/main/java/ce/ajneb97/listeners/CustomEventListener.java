@@ -98,6 +98,8 @@ public class CustomEventListener implements Listener {
                 player = (Player) playerObjectFinal;
             }
 
+            storedVariables.add(new StoredVariable("%player_is_present%",(playerObjectFinal != null)+""));
+
             ConditionEvent conditionEvent = new ConditionEvent(plugin, player, event, EventType.CUSTOM, null)
                     .addVariables(storedVariables);
             plugin.getEventsManager().checkSingularEvent(conditionEvent,ceEvent);
