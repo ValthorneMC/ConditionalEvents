@@ -28,6 +28,7 @@ public class ExecutedEvent {
     private ArrayList<StoredVariable> eventVariables;
     private CEEvent event;
     private Event minecraftEvent;
+    private AdditionalEventStorage additionalEventStorage;
     private String actionGroupName;
     private ConditionalEvents plugin;
 
@@ -39,13 +40,14 @@ public class ExecutedEvent {
     private int currentActionPos;
 
     public ExecutedEvent(Player player, ArrayList<StoredVariable> eventVariables, CEEvent event, String actionGroupName
-        , Event minecraftEvent, LivingEntity target, ConditionalEvents plugin) {
+        , Event minecraftEvent, LivingEntity target, ConditionalEvents plugin, AdditionalEventStorage additionalEventStorage) {
         this.player = player;
         this.eventVariables = eventVariables;
         this.event = event;
         this.actionGroupName = actionGroupName;
         this.target = target;
         this.minecraftEvent = minecraftEvent;
+        this.additionalEventStorage = additionalEventStorage;
         this.plugin = plugin;
 
         this.onWait = false;
@@ -58,7 +60,7 @@ public class ExecutedEvent {
             playerTarget = (Player)target;
         }
         return new VariablesProperties(
-                eventVariables,player,playerTarget,isPlaceholderAPI,event,minecraftEvent
+                eventVariables,player,playerTarget,isPlaceholderAPI,event,minecraftEvent,additionalEventStorage
         );
     }
 
@@ -212,7 +214,7 @@ public class ExecutedEvent {
                     //Check for conditions
                     variablesProperties.setToTarget(player);
                     boolean accomplishesConditions = eventsManager.checkToConditionAction(group.getConditions()
-                            ,globalPlayer,isPlaceholderAPI,event,minecraftEvent);
+                            ,globalPlayer,isPlaceholderAPI,event,minecraftEvent,additionalEventStorage);
                     if(accomplishesConditions){
                         players.add(globalPlayer);
                     }
@@ -465,5 +467,9 @@ public class ExecutedEvent {
     }
     public List<CEAction> getActions() {
         return actions;
+    }
+
+    public AdditionalEventStorage getAdditionalEventStorage() {
+        return additionalEventStorage;
     }
 }

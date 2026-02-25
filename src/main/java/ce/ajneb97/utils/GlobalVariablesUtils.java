@@ -1,5 +1,8 @@
 package ce.ajneb97.utils;
 
+import ce.ajneb97.api.ConditionalEventsAPI;
+import ce.ajneb97.model.internal.AdditionalEventStorage;
+import dev.lone.itemsadder.api.CustomStack;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -283,5 +286,32 @@ public class GlobalVariablesUtils {
         }else{
             return finalLocation.getZ()+"";
         }
+    }
+
+    public static String variableItemItemsAdderId(String variable, AdditionalEventStorage additionalEventStorage){
+        // %item_itemsadder_id%
+        // %<tag>:item_itemsadder_id%
+        if(!ConditionalEventsAPI.getPlugin().getDependencyManager().isItemsAdder()){
+            return "plugin_not_found";
+        }
+
+        String tag = "normal";
+
+        String[] sep = variable.split(":");
+        if(sep.length > 1){
+            tag = sep[0];
+        }
+
+        ItemStack item = additionalEventStorage.getStoredItem(tag);
+        if(item == null){
+            return "";
+        }
+
+        CustomStack stack = CustomStack.byItemStack(item);
+        if(stack == null){
+            return "not_itemsadder";
+        }
+
+        return stack.getNamespace()+":"+stack.getId();
     }
 }

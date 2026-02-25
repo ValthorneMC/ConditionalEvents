@@ -484,7 +484,7 @@ public class ActionUtils {
                 event.getCompletions().clear();
             } else if (mode.equalsIgnoreCase("set")) {
                 String[] buffer_words = event.getBuffer().split(" ", -1); // Don't trim empties
-                String partial_word = buffer_words[buffer_words.length - 1];
+                String partial_word = buffer_words[buffer_words.length - 1].toLowerCase();
                 event.getCompletions().addAll(completions.stream().filter(w -> w.startsWith(partial_word)).collect(Collectors.toList()));
                 event.getCompletions().sort(Comparator.naturalOrder());
             }
@@ -1114,7 +1114,8 @@ public class ActionUtils {
                 actionGroup,
                 executedEvent.getMinecraftEvent(),
                 executedEvent.getTarget(),
-                plugin
+                plugin,
+                executedEvent.getAdditionalEventStorage()
         ).executeActions();
     }
 

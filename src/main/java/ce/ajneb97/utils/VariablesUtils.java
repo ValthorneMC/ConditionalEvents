@@ -66,7 +66,7 @@ public class VariablesUtils {
 
                     String auxBigVariableWithoutChars = auxBigVariable.replace(startChar+"","").replace(endChar+"","");
 
-                    String replaceVariableResult = replaceVariable(auxBigVariableWithoutChars,variablesProperties,smallVariables);
+                    String replaceVariableResult = replaceVariable(auxBigVariableWithoutChars,variablesProperties,smallVariables,false);
 
                     if(replaceVariableResult.equals(auxBigVariableWithoutChars)){
                         auxTextLine = auxTextLine.replace(bigVariable,startChar+replaceVariableResult+endChar);
@@ -93,7 +93,7 @@ public class VariablesUtils {
     }
 
     //Post-Event variables
-    private static PostEventVariableResult replaceEventVariablesPost(String variable, VariablesProperties variablesProperties){
+    public static PostEventVariableResult replaceEventVariablesPost(String variable, VariablesProperties variablesProperties){
         EventType eventType = variablesProperties.getEvent().getEventType();
         if(eventType.equals(EventType.PLAYER_COMMAND) || eventType.equals(EventType.CONSOLE_COMMAND)){
             return replaceCommandEventsVariables(variable,variablesProperties);
@@ -104,7 +104,7 @@ public class VariablesUtils {
         return PostEventVariableResult.noReplaced();
     }
 
-    private static PostEventVariableResult replaceCommandEventsVariables(String variable,VariablesProperties variablesProperties){
+    public static PostEventVariableResult replaceCommandEventsVariables(String variable,VariablesProperties variablesProperties){
         if(variable.startsWith("args_substring_")){
             //%args_substring_<param1>-<param2>%
             String variableLR = variable.replace("args_substring_", "");
@@ -134,7 +134,7 @@ public class VariablesUtils {
         return PostEventVariableResult.noReplaced();
     }
 
-    private static PostEventVariableResult replaceBlockEventsVariables(String variable,VariablesProperties variablesProperties,EventType eventType){
+    public static PostEventVariableResult replaceBlockEventsVariables(String variable,VariablesProperties variablesProperties,EventType eventType){
         Event minecraftEvent = variablesProperties.getMinecraftEvent();
         if(minecraftEvent == null){
             return PostEventVariableResult.noReplaced();
@@ -165,7 +165,7 @@ public class VariablesUtils {
     }
 
     //Global ConditionalEvents variables
-    private static String replaceVariable(String variable,VariablesProperties variablesProperties,boolean smallVariable){
+    public static String replaceVariable(String variable,VariablesProperties variablesProperties,boolean smallVariable,boolean experimental){
         Player finalPlayer = variablesProperties.getPlayer();
         Player target = variablesProperties.getTarget();
         Player to = variablesProperties.getToTarget();
@@ -186,30 +186,44 @@ public class VariablesUtils {
         }
 
         //Global variables
-        if(variable.equals("player")){
-            // %player%
-            return GlobalVariablesUtils.variablePlayer(finalPlayer);
-        }else if(variable.startsWith("playerblock_below_")){
+
+        // equals
+        switch(variable){
+            case "player":
+                // %player%
+                return GlobalVariablesUtils.variablePlayer(finalPlayer);
+            case "playerblock_inside":
+                // %playerblock_inside%
+                return GlobalVariablesUtils.variablePlayerBlockInside(finalPlayer);
+            case "player_is_outside":
+                // %player_is_outside%
+                return GlobalVariablesUtils.variablePlayerIsOutside(finalPlayer);
+            case "random_player":
+                // %random_player%
+                return GlobalVariablesUtils.variableRandomPlayer();
+            case "random_last":
+                // %random_last%
+                return GlobalVariablesUtils.variableLastRandomMinMax();
+            case "world_is_raining":
+                // %world_is_raining%
+                return GlobalVariablesUtils.variableWorldIsRaining(finalPlayer);
+            case "player_attack_cooldown":
+                // %player_attack_cooldown%
+                return GlobalVariablesUtils.variablePlayerAttackCooldown(finalPlayer);
+            case "empty":
+                return "";
+        }
+
+        // startsWith
+        if(variable.startsWith("playerblock_below_")){
             // %playerblock_below_<distance>%
             return GlobalVariablesUtils.variablePlayerBlockBelow(finalPlayer,variable);
         }else if(variable.startsWith("playerblock_above_")){
             // %playerblock_above_<distance>%
             return GlobalVariablesUtils.variablePlayerBlockAbove(finalPlayer,variable);
-        }else if(variable.equals("playerblock_inside")){
-            // %playerblock_inside%
-            return GlobalVariablesUtils.variablePlayerBlockInside(finalPlayer);
-        }else if(variable.equals("player_is_outside")){
-            // %player_is_outside%
-            return GlobalVariablesUtils.variablePlayerIsOutside(finalPlayer);
-        }else if(variable.equals("random_player")) {
-            // %random_player%
-            return GlobalVariablesUtils.variableRandomPlayer();
         }else if(variable.startsWith("random_player_")) {
             // %random_player_<world>%
             return GlobalVariablesUtils.variableRandomPlayerWorld(variable);
-        }else if(variable.equals("random_last")) {
-            // %random_last%
-            return GlobalVariablesUtils.variableLastRandomMinMax();
         }else if(variable.startsWith("random_")) {
             // %random_min_max%
             return GlobalVariablesUtils.variableRandomMinMax(variable);
@@ -234,12 +248,6 @@ public class VariablesUtils {
         }else if(variable.startsWith("world_time_")) {
             // %world_time_<world>%
             return GlobalVariablesUtils.variableWorldTime(variable);
-        }else if(variable.equals("world_is_raining")){
-            // %world_is_raining%
-            return GlobalVariablesUtils.variableWorldIsRaining(finalPlayer);
-        }else if(variable.equals("player_attack_cooldown")){
-            // %player_attack_cooldown%
-            return GlobalVariablesUtils.variablePlayerAttackCooldown(finalPlayer);
         }else if(variable.startsWith("is_number_")) {
             // %is_number_<variable>%
             return GlobalVariablesUtils.isNumber(variable);
@@ -247,8 +255,12 @@ public class VariablesUtils {
             // %player_location_<coord>_<front_value>_<side_value>_<up_value>%
             return GlobalVariablesUtils.variablePlayerLocationDirectional(finalPlayer,variable);
         }
-        else if(variable.equals("empty")) {
-            return "";
+
+        // ends with
+        if(variable.endsWith("item_itemsadder_id")){
+            // %item_itemsadder_id%
+            // %<tag>:item_itemsadder_id%
+            return GlobalVariablesUtils.variableItemItemsAdderId(variable,variablesProperties.getAdditionalEventStorage());
         }
 
         //Post-Event variables
@@ -258,15 +270,34 @@ public class VariablesUtils {
         }
 
         //PlaceholderAPI variables
-        if(variablesProperties.isPlaceholderAPI()){
-            String variableBefore = variable;
-            variable = PlaceholderAPI.setPlaceholders(finalPlayer,"%"+variable+"%");
-            if(("%"+variableBefore+"%").equals(variable)){
-                //Was not replaced
-                if(smallVariable){
-                    variable = "{"+variableBefore+"}";
+        if(experimental){
+            if(variablesProperties.isPlaceholderAPI()){
+                String variableBefore = variable;
+                variable = PlaceholderAPI.setPlaceholders(finalPlayer,"%"+variable+"%");
+                if(!("%"+variableBefore+"%").equals(variable)){
+                    //Was replaced
+                    return variable;
                 }else{
-                    variable = "%"+variableBefore+"%";
+                    variable = variableBefore;
+                }
+            }
+
+            if(smallVariable){
+                return "{"+variable+"}";
+            }else{
+                return "%"+variable+"%";
+            }
+        }else{
+            if(variablesProperties.isPlaceholderAPI()){
+                String variableBefore = variable;
+                variable = PlaceholderAPI.setPlaceholders(finalPlayer,"%"+variable+"%");
+                if(("%"+variableBefore+"%").equals(variable)){
+                    //Was not replaced
+                    if(smallVariable){
+                        variable = "{"+variableBefore+"}";
+                    }else{
+                        variable = "%"+variableBefore+"%";
+                    }
                 }
             }
         }

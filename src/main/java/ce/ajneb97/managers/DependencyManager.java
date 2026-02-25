@@ -10,15 +10,12 @@ public class DependencyManager {
     private boolean placeholderAPI;
     private boolean citizens;
     private boolean worldGuardEvents;
+    private boolean itemsAdder;
     private boolean paper;
     private ProtocolLibManager protocolLibManager;
     private DiscordSRVManager discordSRVManager;
 
     public DependencyManager(ConditionalEvents plugin){
-        placeholderAPI = false;
-        citizens = false;
-        worldGuardEvents = false;
-        paper = false;
         if(Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null
             && Bukkit.getPluginManager().getPlugin("PlaceholderAPI").isEnabled()){
             placeholderAPI = true;
@@ -38,6 +35,10 @@ public class DependencyManager {
         if(Bukkit.getPluginManager().getPlugin("DiscordSRV") != null
                 && Bukkit.getPluginManager().getPlugin("DiscordSRV").isEnabled()){
             discordSRVManager = new DiscordSRVManager(plugin);
+        }
+        if(Bukkit.getPluginManager().getPlugin("ItemsAdder") != null
+                && Bukkit.getPluginManager().getPlugin("ItemsAdder").isEnabled()){
+            itemsAdder = true;
         }
 
         try{
@@ -70,5 +71,9 @@ public class DependencyManager {
 
     public boolean isPaper() {
         return paper;
+    }
+
+    public boolean isItemsAdder() {
+        return itemsAdder;
     }
 }

@@ -36,6 +36,7 @@ public class ConditionEvent {
     private Event minecraftEvent;
     private EventType eventType;
     private CEEvent currentEvent; //The current event that is being checked
+    private AdditionalEventStorage additionalEventStorage;
 
     private boolean async;
 
@@ -45,6 +46,7 @@ public class ConditionEvent {
         this.player = player;
         this.eventVariables = new ArrayList<>();
         this.minecraftEvent = minecraftEvent;
+        this.additionalEventStorage = new AdditionalEventStorage();
         this.eventType = eventType;
         this.target = target;
         this.async = false;
@@ -256,6 +258,8 @@ public class ConditionEvent {
                     }
                 }
             }
+
+            additionalEventStorage.setItem(otherItemTag,item);
         }
 
         //Example: %offhand:<variable>%
@@ -319,5 +323,9 @@ public class ConditionEvent {
     public ConditionEvent setAsync(boolean async) {
         this.async = async;
         return this;
+    }
+
+    public AdditionalEventStorage getAdditionalEventStorage() {
+        return additionalEventStorage;
     }
 }

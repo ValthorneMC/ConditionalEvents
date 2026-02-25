@@ -16,14 +16,17 @@ public class VariablesProperties {
     private boolean isPlaceholderAPI;
     private CEEvent event;
     private Event minecraftEvent;
+    private AdditionalEventStorage additionalEventStorage;
 
-    public VariablesProperties(ArrayList<StoredVariable> eventVariables, Player player, Player target, boolean isPlaceholderAPI, CEEvent event, Event minecraftEvent) {
+    public VariablesProperties(ArrayList<StoredVariable> eventVariables, Player player, Player target, boolean isPlaceholderAPI,
+                               CEEvent event, Event minecraftEvent, AdditionalEventStorage additionalEventStorage) {
         this.eventVariables = eventVariables;
         this.player = player;
         this.target = target;
         this.isPlaceholderAPI = isPlaceholderAPI;
         this.event = event;
         this.minecraftEvent = minecraftEvent;
+        this.additionalEventStorage = additionalEventStorage;
     }
 
 
@@ -81,5 +84,9 @@ public class VariablesProperties {
 
     public void setToTarget(Player toTarget) {
         this.toTarget = toTarget;
+    }
+
+    public AdditionalEventStorage getAdditionalEventStorage() {
+        return additionalEventStorage;
     }
 }

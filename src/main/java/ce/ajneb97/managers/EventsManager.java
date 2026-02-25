@@ -92,7 +92,8 @@ public class EventsManager {
                 boolean isOneTime = playerManager.getEventOneTime(event.getName(),player);
                 if(isOneTime){
                     ExecutedEvent executedEvent = new ExecutedEvent(player, conditionEvent.getEventVariables(), event,
-                         "one_time", conditionEvent.getMinecraftEvent(), conditionEvent.getTarget(), plugin);
+                         "one_time", conditionEvent.getMinecraftEvent(), conditionEvent.getTarget(), plugin,
+                            conditionEvent.getAdditionalEventStorage());
                     plugin.getDebugManager().sendActionsMessage(event.getName(),"one_time",player);
                     executedEvent.executeActions();
                     return;
@@ -107,7 +108,8 @@ public class EventsManager {
                     String timeString = TimeUtils.getTime((eventCooldownMillis-currentTimeMillis)/1000,messagesManager);
                     conditionEvent.getEventVariables().add(new StoredVariable("%time%",timeString));
                     ExecutedEvent executedEvent = new ExecutedEvent(player, conditionEvent.getEventVariables(), event,
-                          "cooldown", conditionEvent.getMinecraftEvent(), conditionEvent.getTarget(), plugin);
+                          "cooldown", conditionEvent.getMinecraftEvent(), conditionEvent.getTarget(), plugin,
+                            conditionEvent.getAdditionalEventStorage());
                     plugin.getDebugManager().sendActionsMessage(event.getName(),"cooldown",player);
                     executedEvent.executeActions();
                     return;
@@ -140,7 +142,8 @@ public class EventsManager {
 
         //Execute actions
         ExecutedEvent executedEvent = new ExecutedEvent(player, conditionEvent.getEventVariables(), event,
-                executeActionGroup, conditionEvent.getMinecraftEvent(), conditionEvent.getTarget(), plugin);
+                executeActionGroup, conditionEvent.getMinecraftEvent(), conditionEvent.getTarget(), plugin,
+                conditionEvent.getAdditionalEventStorage());
         executedEvent.executeActions();
     }
 
@@ -176,6 +179,7 @@ public class EventsManager {
 
         CEEvent event = conditionEvent.getCurrentEvent();
         Event minecraftEvent = conditionEvent.getMinecraftEvent();
+        AdditionalEventStorage additionalEventStorage = conditionEvent.getAdditionalEventStorage();
         DebugManager debugManager = plugin.getDebugManager();
         boolean mathFormulas = conditionEvent.getCurrentEvent().isAllowMathFormulasInConditions();
 
@@ -226,7 +230,7 @@ public class EventsManager {
                         String arg2 = miniCondition.substring(textToFindIndex+conditionalType.getText().length()+2);
                         //Replace variables
                         VariablesProperties variablesProperties = new VariablesProperties(
-                                storedVariables,player,target,isPlaceholderAPI,event,minecraftEvent
+                                storedVariables,player,target,isPlaceholderAPI,event,minecraftEvent,additionalEventStorage
                         );
                         arg1 = VariablesUtils.replaceAllVariablesInLine(arg1,variablesProperties,false);
                         arg2 = VariablesUtils.replaceAllVariablesInLine(arg2,variablesProperties,false);
@@ -337,7 +341,7 @@ public class EventsManager {
     }
 
     public boolean checkToConditionAction(List<String> conditionGroup, Player player, boolean isPlaceholderAPI,
-                                          CEEvent event, Event minecraftEvent){
+                                          CEEvent event, Event minecraftEvent, AdditionalEventStorage additionalEventStorage){
         boolean mathFormulas = event.isAllowMathFormulasInConditions();
         for(int i=0;i<conditionGroup.size();i++) {
             String conditionLine = conditionGroup.get(i);
@@ -368,7 +372,7 @@ public class EventsManager {
                         String arg2 = miniCondition.substring(textToFindIndex+conditionalType.getText().length()+2);
 
                         VariablesProperties variablesProperties = new VariablesProperties(
-                                storedVariables,player,null,isPlaceholderAPI,event,minecraftEvent
+                                storedVariables,player,null,isPlaceholderAPI,event,minecraftEvent,additionalEventStorage
                         );
                         arg1 = VariablesUtils.replaceAllVariablesInLine(arg1,variablesProperties,false);
                         arg2 = VariablesUtils.replaceAllVariablesInLine(arg2,variablesProperties,false);

@@ -77,7 +77,22 @@ public class PlayerEventsListener implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onRespawn(PlayerRespawnEvent event){
         Player player = event.getPlayer();
+
+        String reason = "";
+        ServerVersion serverVersion = ConditionalEvents.serverVersion;
+        if(serverVersion.serverVersionGreaterEqualThan(serverVersion,ServerVersion.v1_19_R3)) {
+            reason = event.getRespawnReason().name();
+        }
+
+        Location l = event.getRespawnLocation();
+
         new ConditionEvent(plugin, player, event, EventType.PLAYER_RESPAWN, null)
+                .addVariables(
+                        new StoredVariable("%reason%",reason),
+                        new StoredVariable("%x%",l.getX()+""),
+                        new StoredVariable("%y%",l.getY()+""),
+                        new StoredVariable("%z%",l.getZ()+"")
+                )
                 .checkEvent();
     }
 
@@ -135,11 +150,16 @@ public class PlayerEventsListener implements Listener {
             return;
         }
 
+        String face = event.getBlockFace().name();
+
         ConditionEvent conditionEvent = new ConditionEvent(plugin, player, event, EventType.BLOCK_INTERACT, null);
         if(!conditionEvent.containsValidEvents()) return;
         conditionEvent.setCommonBlockVariables(block)
                 .setCommonActionVariables(event.getAction(),player)
                 .setCommonItemVariables(player.getItemInHand(),null)
+                .addVariables(
+                        new StoredVariable("%face%",face)
+                )
                 .checkEvent();
     }
 
