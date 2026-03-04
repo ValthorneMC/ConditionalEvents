@@ -257,10 +257,10 @@ public class VariablesUtils {
         }
 
         // ends with
-        if(variable.endsWith("item_itemsadder_id")){
-            // %item_itemsadder_id%
-            // %<tag>:item_itemsadder_id%
-            return GlobalVariablesUtils.variableItemItemsAdderId(variable,variablesProperties.getAdditionalEventStorage());
+        if(variable.endsWith("item_nexo_id")){
+            // %item_nexo_id%
+            // %<tag>:item_nexo_id%
+            return GlobalVariablesUtils.variableItemNexoId(variable,variablesProperties.getAdditionalEventStorage());
         }
 
         //Post-Event variables

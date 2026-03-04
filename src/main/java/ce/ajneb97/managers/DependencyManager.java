@@ -10,7 +10,7 @@ public class DependencyManager {
     private boolean placeholderAPI;
     private boolean citizens;
     private boolean worldGuardEvents;
-    private boolean itemsAdder;
+    private boolean nexo;
     private boolean paper;
     private ProtocolLibManager protocolLibManager;
     private DiscordSRVManager discordSRVManager;
@@ -36,9 +36,9 @@ public class DependencyManager {
                 && Bukkit.getPluginManager().getPlugin("DiscordSRV").isEnabled()){
             discordSRVManager = new DiscordSRVManager(plugin);
         }
-        if(Bukkit.getPluginManager().getPlugin("ItemsAdder") != null
-                && Bukkit.getPluginManager().getPlugin("ItemsAdder").isEnabled()){
-            itemsAdder = true;
+        if(Bukkit.getPluginManager().getPlugin("Nexo") != null
+                && Bukkit.getPluginManager().getPlugin("Nexo").isEnabled()){
+            nexo = true;
         }
 
         try{
@@ -73,7 +73,7 @@ public class DependencyManager {
         return paper;
     }
 
-    public boolean isItemsAdder() {
-        return itemsAdder;
+    public boolean isNexo() {
+        return nexo;
     }
 }

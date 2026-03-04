@@ -2,7 +2,7 @@ package ce.ajneb97.utils;
 
 import ce.ajneb97.api.ConditionalEventsAPI;
 import ce.ajneb97.model.internal.AdditionalEventStorage;
-import dev.lone.itemsadder.api.CustomStack;
+import com.nexomc.nexo.api.NexoItems;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -288,10 +288,10 @@ public class GlobalVariablesUtils {
         }
     }
 
-    public static String variableItemItemsAdderId(String variable, AdditionalEventStorage additionalEventStorage){
-        // %item_itemsadder_id%
-        // %<tag>:item_itemsadder_id%
-        if(!ConditionalEventsAPI.getPlugin().getDependencyManager().isItemsAdder()){
+    public static String variableItemNexoId(String variable, AdditionalEventStorage additionalEventStorage){
+        // %item_nexo_id%
+        // %<tag>:item_nexo_id%
+        if(!ConditionalEventsAPI.getPlugin().getDependencyManager().isNexo()){
             return "plugin_not_found";
         }
 
@@ -307,11 +307,11 @@ public class GlobalVariablesUtils {
             return "";
         }
 
-        CustomStack stack = CustomStack.byItemStack(item);
-        if(stack == null){
-            return "not_itemsadder";
+        String id = NexoItems.idFromItem(item);
+        if(id == null){
+            return "not_nexo";
         }
 
-        return stack.getNamespace()+":"+stack.getId();
+        return id;
     }
 }
