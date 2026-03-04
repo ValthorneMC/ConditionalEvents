@@ -2,6 +2,7 @@ main: ce.ajneb97.ConditionalEvents
 version: ${project.version}
 name: ConditionalEvents
 api-version: 1.13
+folia-supported: true
 softdepend: [PlaceholderAPI,Citizens,WorldGuardEvents,WorldGuard,ProtocolLib,DiscordSRV,ItemsAdder]
 author: Ajneb97
 

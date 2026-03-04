@@ -4,9 +4,10 @@ import ce.ajneb97.ConditionalEvents;
 import ce.ajneb97.model.CEEvent;
 import ce.ajneb97.model.EventType;
 import ce.ajneb97.model.internal.ConditionEvent;
+import ce.ajneb97.utils.SchedulerUtil;
+import ce.ajneb97.utils.WrappedTask;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
-import org.bukkit.scheduler.BukkitRunnable;
 
 public class RepetitiveManager {
 
@@ -15,6 +16,7 @@ public class RepetitiveManager {
     private long ticks;
     private boolean mustEnd;
     private boolean started;
+    private WrappedTask scheduledTask;
 
     public RepetitiveManager(ConditionalEvents plugin,CEEvent ceEvent,long ticks){
         this.plugin = plugin;
@@ -29,19 +31,23 @@ public class RepetitiveManager {
     public void end() {
         this.mustEnd = true;
         this.started = false;
+        if (scheduledTask != null) {
+            scheduledTask.cancel();
+            scheduledTask = null;
+        }
     }
 
     public void start(){
         this.mustEnd = false;
         this.started = true;
-        new BukkitRunnable(){
-            @Override
-            public void run() {
-                if(mustEnd || !execute()){
-                    this.cancel();
+        scheduledTask = SchedulerUtil.runAsyncTimer(plugin, () -> {
+            if(mustEnd || !execute()){
+                if (scheduledTask != null) {
+                    scheduledTask.cancel();
+                    scheduledTask = null;
                 }
             }
-        }.runTaskTimerAsynchronously(plugin, 0L, ticks);
+        }, 0L, ticks);
     }
 
     public boolean execute(){

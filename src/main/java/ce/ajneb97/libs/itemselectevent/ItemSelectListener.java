@@ -14,7 +14,7 @@ import org.bukkit.event.player.PlayerItemBreakEvent;
 import org.bukkit.event.player.PlayerItemHeldEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.scheduler.BukkitRunnable;
+import ce.ajneb97.utils.SchedulerUtil;
 import ce.ajneb97.ConditionalEvents;
 
 public class ItemSelectListener implements Listener{
@@ -83,12 +83,9 @@ public class ItemSelectListener implements Listener{
 			Bukkit.getServer().getPluginManager().callEvent(selectEvent);
 		}
 		
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				players.remove(player);
-			}
-		}.runTaskLater(plugin, 3L);
+		SchedulerUtil.runTaskLater(plugin, () -> {
+			players.remove(player);
+		}, 3L);
 	}
 	
 	@SuppressWarnings("deprecation")

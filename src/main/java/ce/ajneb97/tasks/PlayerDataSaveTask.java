@@ -1,35 +1,27 @@
 package ce.ajneb97.tasks;
 
 import ce.ajneb97.ConditionalEvents;
-import org.bukkit.scheduler.BukkitRunnable;
+import ce.ajneb97.utils.SchedulerUtil;
+import ce.ajneb97.utils.WrappedTask;
 
 public class PlayerDataSaveTask {
 
 	private ConditionalEvents plugin;
-	private boolean end;
+	private WrappedTask scheduledTask;
 	public PlayerDataSaveTask(ConditionalEvents plugin) {
 		this.plugin = plugin;
-		this.end = false;
 	}
 	
 	public void end() {
-		end = true;
+		if (scheduledTask != null) {
+			scheduledTask.cancel();
+			scheduledTask = null;
+		}
 	}
 	
 	public void start(int minutes) {
 		long ticks = minutes*60*20;
-		
-		new BukkitRunnable() {
-			@Override
-			public void run() {
-				if(end) {
-					this.cancel();
-				}else {
-					execute();
-				}
-			}
-			
-		}.runTaskTimerAsynchronously(plugin, 0L, ticks);
+		scheduledTask = SchedulerUtil.runAsyncTimer(plugin, this::execute, ticks, ticks);
 	}
 	
 	public void execute() {
