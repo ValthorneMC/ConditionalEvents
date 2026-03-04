@@ -12,7 +12,8 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.player.AsyncPlayerPreLoginEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
-import org.bukkit.scheduler.BukkitRunnable;
+
+import ce.ajneb97.utils.SchedulerUtil;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -126,32 +127,26 @@ public class PlayerManager {
     }
 
     public void resetDataForAllPlayers(String eventName, FileConfiguration messagesConfig, GenericCallback<String> callback){
-        new BukkitRunnable(){
-            @Override
-            public void run() {
-                PlayersConfigsManager playersConfigsManager = plugin.getConfigsManager().getPlayerConfigsManager();
-                playersConfigsManager.resetDataForAllPlayers(eventName);
+        SchedulerUtil.runAsync(plugin, () -> {
+            PlayersConfigsManager playersConfigsManager = plugin.getConfigsManager().getPlayerConfigsManager();
+            playersConfigsManager.resetDataForAllPlayers(eventName);
 
-                new BukkitRunnable(){
-                    @Override
-                    public void run() {
-                        String result;
-                        if(eventName.equals("all")) {
-                            // All data, Online:
-                            players.values().forEach(PlayerData::resetAll);
-                            result = messagesConfig.getString("Messages.eventDataResetAllForAllPlayers");
-                        }else {
-                            // Specific event, Online:
-                            players.values().forEach(p -> p.resetEvent(eventName));
-                            result = messagesConfig.getString("Messages.eventDataResetForAllPlayers")
-                                    .replace("%event%", eventName);
-                        }
+            SchedulerUtil.runTask(plugin, () -> {
+                String result;
+                if(eventName.equals("all")) {
+                    // All data, Online:
+                    players.values().forEach(PlayerData::resetAll);
+                    result = messagesConfig.getString("Messages.eventDataResetAllForAllPlayers");
+                }else {
+                    // Specific event, Online:
+                    players.values().forEach(p -> p.resetEvent(eventName));
+                    result = messagesConfig.getString("Messages.eventDataResetForAllPlayers")
+                            .replace("%event%", eventName);
+                }
 
-                        callback.onDone(result);
-                    }
-                }.runTask(plugin);
-            }
-        }.runTaskAsynchronously(plugin);
+                callback.onDone(result);
+            });
+        });
     }
 
     public void manageJoin(AsyncPlayerPreLoginEvent event){
@@ -182,12 +177,9 @@ public class PlayerManager {
         PlayerData playerData = getPlayer(player,false);
         if(playerData != null){
             if(playerData.isModified()){
-                new BukkitRunnable(){
-                    @Override
-                    public void run() {
-                        plugin.getConfigsManager().getPlayerConfigsManager().saveConfig(playerData);
-                    }
-                }.runTaskAsynchronously(plugin);
+                SchedulerUtil.runAsync(plugin, () -> {
+                    plugin.getConfigsManager().getPlayerConfigsManager().saveConfig(playerData);
+                });
             }
             removePlayer(playerData);
         }

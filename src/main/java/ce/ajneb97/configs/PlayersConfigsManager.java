@@ -5,8 +5,8 @@ import ce.ajneb97.configs.model.CommonConfig;
 import ce.ajneb97.model.player.EventData;
 import ce.ajneb97.model.player.GenericCallback;
 import ce.ajneb97.model.player.PlayerData;
+import ce.ajneb97.utils.SchedulerUtil;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.Map;
@@ -54,40 +54,34 @@ public class PlayersConfigsManager extends DataFolderConfigManager{
 	}
 
 	public void loadConfigAsync(UUID uuid, GenericCallback<PlayerData> callback){
-		new BukkitRunnable(){
-			@Override
-			public void run() {
-				PlayerData playerData = null;
-				CommonConfig playerConfig = getConfigFile(uuid+".yml",false);
-				if(playerConfig != null){
-					// If config exists
-					FileConfiguration config = playerConfig.getConfig();
-					String name = config.getString("name");
+		SchedulerUtil.runAsync(plugin, () -> {
+			PlayerData playerData = null;
+			CommonConfig playerConfig = getConfigFile(uuid+".yml",false);
+			if(playerConfig != null){
+				// If config exists
+				FileConfiguration config = playerConfig.getConfig();
+				String name = config.getString("name");
 
-					playerData = new PlayerData(uuid,name);
-					ArrayList<EventData> eventData = new ArrayList<>();
-					if(config.contains("events")){
-						for(String key : config.getConfigurationSection("events").getKeys(false)){
-							boolean oneTime = config.getBoolean("events."+key+".one_time");
-							long cooldown = config.getLong("events."+key+".cooldown");
-							EventData event = new EventData(key,cooldown,oneTime);
+				playerData = new PlayerData(uuid,name);
+				ArrayList<EventData> eventData = new ArrayList<>();
+				if(config.contains("events")){
+					for(String key : config.getConfigurationSection("events").getKeys(false)){
+						boolean oneTime = config.getBoolean("events."+key+".one_time");
+						long cooldown = config.getLong("events."+key+".cooldown");
+						EventData event = new EventData(key,cooldown,oneTime);
 
-							eventData.add(event);
-						}
+						eventData.add(event);
 					}
-					playerData.setEventData(eventData);
 				}
-
-				PlayerData finalPlayer = playerData;
-
-				new BukkitRunnable(){
-					@Override
-					public void run() {
-						callback.onDone(finalPlayer);
-					}
-				}.runTask(plugin);
+				playerData.setEventData(eventData);
 			}
-		}.runTaskAsynchronously(plugin);
+
+			PlayerData finalPlayer = playerData;
+
+			SchedulerUtil.runTask(plugin, () -> {
+				callback.onDone(finalPlayer);
+			});
+		});
 	}
 
 	public void saveConfig(PlayerData player){

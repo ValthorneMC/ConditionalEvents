@@ -2,8 +2,8 @@ package ce.ajneb97.managers;
 
 import ce.ajneb97.ConditionalEvents;
 import ce.ajneb97.model.internal.WaitActionTask;
+import ce.ajneb97.utils.WrappedTask;
 import org.bukkit.Bukkit;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.util.*;
 
@@ -16,12 +16,12 @@ public class InterruptEventManager {
         this.tasks = new ArrayList<>();
     }
 
-    public void addTask(String playerName, String eventName, BukkitTask bukkitTask){
-        tasks.add(new WaitActionTask(playerName,eventName,bukkitTask));
+    public void addTask(String playerName, String eventName, WrappedTask wrappedTask){
+        tasks.add(new WaitActionTask(playerName,eventName,wrappedTask));
     }
 
-    public void removeTaskById(int taskId){
-        tasks.removeIf(task -> task.getTask().getTaskId() == taskId);
+    public void removeTask(WrappedTask wrappedTask){
+        tasks.removeIf(task -> task.getTask() == wrappedTask);
     }
 
     // Interrupt actions for a specific event, globally or per player

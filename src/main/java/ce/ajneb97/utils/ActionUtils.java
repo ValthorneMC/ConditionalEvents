@@ -32,8 +32,6 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.metadata.FixedMetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
-import org.bukkit.scheduler.BukkitRunnable;
-import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.util.Vector;
 
 import java.lang.reflect.InvocationTargetException;
@@ -915,13 +913,12 @@ public class ActionUtils {
         int timeSeconds = Integer.parseInt(actionLine);
 
         InterruptEventManager interruptEventManager = ConditionalEventsAPI.getPlugin().getInterruptEventManager();
-        BukkitTask task = new BukkitRunnable(){
-            @Override
-            public void run() {
-                interruptEventManager.removeTaskById(this.getTaskId());
-                executedEvent.continueWithActions();
-            }
-        }.runTaskLater(executedEvent.getPlugin(), timeSeconds* 20L);
+        final WrappedTask[] taskHolder = new WrappedTask[1];
+        WrappedTask task = SchedulerUtil.runTaskLater(executedEvent.getPlugin(), () -> {
+            interruptEventManager.removeTask(taskHolder[0]);
+            executedEvent.continueWithActions();
+        }, timeSeconds * 20L);
+        taskHolder[0] = task;
 
         interruptEventManager.addTask(
                 executedEvent.getPlayer() != null ? executedEvent.getPlayer().getName() : null,
@@ -935,13 +932,12 @@ public class ActionUtils {
         long timeTicks = Long.parseLong(actionLine);
 
         InterruptEventManager interruptEventManager = ConditionalEventsAPI.getPlugin().getInterruptEventManager();
-        BukkitTask task = new BukkitRunnable(){
-            @Override
-            public void run() {
-                interruptEventManager.removeTaskById(this.getTaskId());
-                executedEvent.continueWithActions();
-            }
-        }.runTaskLater(executedEvent.getPlugin(), timeTicks);
+        final WrappedTask[] taskHolder = new WrappedTask[1];
+        WrappedTask task = SchedulerUtil.runTaskLater(executedEvent.getPlugin(), () -> {
+            interruptEventManager.removeTask(taskHolder[0]);
+            executedEvent.continueWithActions();
+        }, timeTicks);
+        taskHolder[0] = task;
 
         interruptEventManager.addTask(
                 executedEvent.getPlayer() != null ? executedEvent.getPlayer().getName() : null,

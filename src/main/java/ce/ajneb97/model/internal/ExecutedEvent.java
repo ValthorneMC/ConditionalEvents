@@ -9,13 +9,13 @@ import ce.ajneb97.model.StoredVariable;
 import ce.ajneb97.model.ToConditionGroup;
 import ce.ajneb97.model.actions.*;
 import ce.ajneb97.utils.ActionUtils;
+import ce.ajneb97.utils.SchedulerUtil;
 import ce.ajneb97.utils.VariablesUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Event;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -102,14 +102,11 @@ public class ExecutedEvent {
         //Check cancel event or prevent join, always first to prevent issues with async events.
         executeCancelActions();
 
-        if(!Bukkit.isPrimaryThread()){
-            new BukkitRunnable(){
-                @Override
-                public void run() {
-                    plugin.getServer().getPluginManager().callEvent(ceEvent);
-                    executeActionsFinal();
-                }
-            }.runTask(plugin);
+        if(SchedulerUtil.isFolia() || !Bukkit.isPrimaryThread()){
+            SchedulerUtil.runTask(plugin, () -> {
+                plugin.getServer().getPluginManager().callEvent(ceEvent);
+                executeActionsFinal();
+            });
         }else{
             plugin.getServer().getPluginManager().callEvent(ceEvent);
             executeActionsFinal();
