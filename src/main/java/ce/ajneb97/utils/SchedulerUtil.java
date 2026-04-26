@@ -1,6 +1,8 @@
 package ce.ajneb97.utils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
 /**
@@ -82,5 +84,35 @@ public class SchedulerUtil {
         }
         Object task = Bukkit.getScheduler().runTaskTimerAsynchronously(plugin, runnable, delayTicks, periodTicks);
         return new WrappedTask(task);
+    }
+
+    /**
+     * Runs code on the region thread that owns {@code entity}. On Folia this uses the entity scheduler.
+     */
+    public static void runForEntity(Plugin plugin, Entity entity, Runnable runnable) {
+        if (IS_FOLIA) {
+            FoliaScheduler.runForEntity(plugin, entity, runnable);
+        } else {
+            Bukkit.getScheduler().runTask(plugin, runnable);
+        }
+    }
+
+    public static WrappedTask runDelayedForEntity(Plugin plugin, Entity entity, Runnable runnable, long delayTicks) {
+        if (IS_FOLIA) {
+            return FoliaScheduler.runDelayedForEntity(plugin, entity, runnable, delayTicks);
+        }
+        Object task = Bukkit.getScheduler().runTaskLater(plugin, runnable, delayTicks);
+        return new WrappedTask(task);
+    }
+
+    /**
+     * Runs code on the region thread that owns the chunk at {@code location}.
+     */
+    public static void runForLocation(Plugin plugin, Location location, Runnable runnable) {
+        if (IS_FOLIA) {
+            FoliaScheduler.runForLocation(plugin, location, runnable);
+        } else {
+            Bukkit.getScheduler().runTask(plugin, runnable);
+        }
     }
 }

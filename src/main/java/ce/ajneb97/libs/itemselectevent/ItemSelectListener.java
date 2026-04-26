@@ -83,9 +83,11 @@ public class ItemSelectListener implements Listener{
 			Bukkit.getServer().getPluginManager().callEvent(selectEvent);
 		}
 		
-		SchedulerUtil.runTaskLater(plugin, () -> {
-			players.remove(player);
-		}, 3L);
+		if (SchedulerUtil.isFolia()) {
+			SchedulerUtil.runDelayedForEntity(plugin, player, () -> players.remove(player), 3L);
+		} else {
+			SchedulerUtil.runTaskLater(plugin, () -> players.remove(player), 3L);
+		}
 	}
 	
 	@SuppressWarnings("deprecation")

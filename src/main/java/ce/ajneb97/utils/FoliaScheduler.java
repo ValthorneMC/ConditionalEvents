@@ -2,6 +2,8 @@ package ce.ajneb97.utils;
 
 import io.papermc.paper.threadedregions.scheduler.ScheduledTask;
 import org.bukkit.Bukkit;
+import org.bukkit.Location;
+import org.bukkit.entity.Entity;
 import org.bukkit.plugin.Plugin;
 
 import java.util.concurrent.TimeUnit;
@@ -43,5 +45,41 @@ class FoliaScheduler {
         ScheduledTask task = Bukkit.getAsyncScheduler().runAtFixedRate(plugin, t -> runnable.run(),
                 delayMs, periodMs, TimeUnit.MILLISECONDS);
         return new WrappedTask(task);
+    }
+
+    static void runForEntity(Plugin plugin, Entity entity, Runnable runnable) {
+        if (entity == null) {
+            Bukkit.getGlobalRegionScheduler().run(plugin, t -> runnable.run());
+            return;
+        }
+        if (Bukkit.isOwnedByCurrentRegion(entity)) {
+            runnable.run();
+        } else {
+            entity.getScheduler().run(plugin, t -> runnable.run(), null);
+        }
+    }
+
+    static WrappedTask runDelayedForEntity(Plugin plugin, Entity entity, Runnable runnable, long delayTicks) {
+        if (entity == null) {
+            return runTaskLater(plugin, runnable, delayTicks);
+        }
+        if (delayTicks <= 0) {
+            runForEntity(plugin, entity, runnable);
+            return new WrappedTask(null);
+        }
+        ScheduledTask task = entity.getScheduler().runDelayed(plugin, t -> runnable.run(), null, delayTicks);
+        return new WrappedTask(task);
+    }
+
+    static void runForLocation(Plugin plugin, Location location, Runnable runnable) {
+        if (location == null || location.getWorld() == null) {
+            Bukkit.getGlobalRegionScheduler().run(plugin, t -> runnable.run());
+            return;
+        }
+        if (Bukkit.isOwnedByCurrentRegion(location)) {
+            runnable.run();
+        } else {
+            Bukkit.getRegionScheduler().run(plugin, location, t -> runnable.run());
+        }
     }
 }

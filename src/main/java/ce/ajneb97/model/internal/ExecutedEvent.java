@@ -103,10 +103,15 @@ public class ExecutedEvent {
         executeCancelActions();
 
         if(SchedulerUtil.isFolia() || !Bukkit.isPrimaryThread()){
-            SchedulerUtil.runTask(plugin, () -> {
+            Runnable start = () -> {
                 plugin.getServer().getPluginManager().callEvent(ceEvent);
                 executeActionsFinal();
-            });
+            };
+            if (SchedulerUtil.isFolia() && player != null) {
+                SchedulerUtil.runForEntity(plugin, player, start);
+            } else {
+                SchedulerUtil.runTask(plugin, start);
+            }
         }else{
             plugin.getServer().getPluginManager().callEvent(ceEvent);
             executeActionsFinal();
@@ -250,7 +255,29 @@ public class ExecutedEvent {
         executeAction(livingEntity,actionType,apiType,toActionLine);
     }
 
-    private void executeAction(LivingEntity livingEntity,ActionType type,String apiType,String actionLine){
+    private void executeAction(LivingEntity livingEntity, ActionType type, String apiType, String actionLine) {
+        if (!SchedulerUtil.isFolia()) {
+            executeActionSync(livingEntity, type, apiType, actionLine);
+            return;
+        }
+        Runnable sync = () -> executeActionSync(livingEntity, type, apiType, actionLine);
+        if (type == ActionType.CONSOLE_MESSAGE || type == ActionType.CONSOLE_COMMAND || type == ActionType.DISCORDSRV_EMBED) {
+            SchedulerUtil.runTask(plugin, sync);
+            return;
+        }
+        if (type == ActionType.DROP_ITEM || type == ActionType.SET_BLOCK || type == ActionType.SUMMON
+                || type == ActionType.LIGHTNING_STRIKE) {
+            executeActionSync(livingEntity, type, apiType, actionLine);
+            return;
+        }
+        if (livingEntity != null) {
+            SchedulerUtil.runForEntity(plugin, livingEntity, sync);
+            return;
+        }
+        SchedulerUtil.runTask(plugin, sync);
+    }
+
+    private void executeActionSync(LivingEntity livingEntity,ActionType type,String apiType,String actionLine){
         //Non player actions
         switch(type){
             case CONSOLE_MESSAGE:

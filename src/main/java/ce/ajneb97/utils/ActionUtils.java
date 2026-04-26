@@ -426,27 +426,40 @@ public class ActionUtils {
     }
 
     public static void dropItem(String actionLine) {
-        // drop_item: location:<x>,<y>,<z>,<world>;id:<id>;amount:<amount>;...
-
-        String[] sep = actionLine.replace("drop_item: ","").split(";");
-        ItemStack item = ItemUtils.getItemFromProperties(sep,null);
-        Location location = null;
-
-        // Find location
-        for(String property : sep){
-            if(property.startsWith("location:")){
-                String[] locationSplit = property.replace("location:", "").split(",");
-                location = new Location(
-                        Bukkit.getWorld(locationSplit[3]),
-                        Double.parseDouble(locationSplit[0]),
-                        Double.parseDouble(locationSplit[1]),
-                        Double.parseDouble(locationSplit[2])
-                );
-                break;
+        if (SchedulerUtil.isFolia()) {
+            Location location = parseDropItemLocation(actionLine);
+            if (location != null) {
+                ConditionalEvents plugin = ConditionalEventsAPI.getPlugin();
+                SchedulerUtil.runForLocation(plugin, location, () -> dropItemUnchecked(actionLine));
+                return;
             }
         }
+        dropItemUnchecked(actionLine);
+    }
 
-        //Drop Item
+    private static Location parseDropItemLocation(String actionLine) {
+        String[] sep = actionLine.replace("drop_item: ", "").split(";");
+        for (String property : sep) {
+            if (property.startsWith("location:")) {
+                String[] locationSplit = property.replace("location:", "").split(",");
+                World w = Bukkit.getWorld(locationSplit[3]);
+                if (w == null) {
+                    return null;
+                }
+                return new Location(w,
+                        Double.parseDouble(locationSplit[0]),
+                        Double.parseDouble(locationSplit[1]),
+                        Double.parseDouble(locationSplit[2]));
+            }
+        }
+        return null;
+    }
+
+    private static void dropItemUnchecked(String actionLine) {
+        String[] sep = actionLine.replace("drop_item: ","").split(";");
+        ItemStack item = ItemUtils.getItemFromProperties(sep,null);
+        Location location = parseDropItemLocation(actionLine);
+
         if(location != null){
             location.getWorld().dropItemNaturally(location,item);
         }
@@ -490,7 +503,36 @@ public class ActionUtils {
     }
 
     public static void setBlock(String actionLine){
-        // set_block: location:<x>,<y>,<z>,<world>;id:<id>
+        if (SchedulerUtil.isFolia()) {
+            Location location = parseSetBlockLocation(actionLine);
+            if (location != null) {
+                ConditionalEvents plugin = ConditionalEventsAPI.getPlugin();
+                SchedulerUtil.runForLocation(plugin, location, () -> setBlockUnchecked(actionLine));
+                return;
+            }
+        }
+        setBlockUnchecked(actionLine);
+    }
+
+    private static Location parseSetBlockLocation(String actionLine) {
+        String[] sep = actionLine.replace("set_block: ", "").split(";");
+        for (String property : sep) {
+            if (property.startsWith("location:")) {
+                String[] locationSplit = property.replace("location:", "").split(",");
+                World w = Bukkit.getWorld(locationSplit[3]);
+                if (w == null) {
+                    return null;
+                }
+                return new Location(w,
+                        Double.parseDouble(locationSplit[0]),
+                        Double.parseDouble(locationSplit[1]),
+                        Double.parseDouble(locationSplit[2]));
+            }
+        }
+        return null;
+    }
+
+    private static void setBlockUnchecked(String actionLine){
         String[] sep = actionLine.replace("set_block: ","").split(";");
         Location location = null;
         Material material = Material.AIR;
@@ -531,7 +573,34 @@ public class ActionUtils {
     }
 
     public static void lightningStrike(String actionLine) {
-        // lightning_strike: <world>;<x>;<y>;<z>
+        if (SchedulerUtil.isFolia()) {
+            Location l = parseLightningLocation(actionLine);
+            if (l != null && l.getWorld() != null) {
+                ConditionalEvents plugin = ConditionalEventsAPI.getPlugin();
+                SchedulerUtil.runForLocation(plugin, l, () -> lightningStrikeUnchecked(actionLine));
+                return;
+            }
+        }
+        lightningStrikeUnchecked(actionLine);
+    }
+
+    private static Location parseLightningLocation(String actionLine) {
+        try {
+            String[] sep = actionLine.split(";");
+            World world = Bukkit.getWorld(sep[0]);
+            if (world == null) {
+                return null;
+            }
+            double x = Double.parseDouble(sep[1]);
+            double y = Double.parseDouble(sep[2]);
+            double z = Double.parseDouble(sep[3]);
+            return new Location(world, x, y, z);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private static void lightningStrikeUnchecked(String actionLine) {
         String[] sep = actionLine.split(";");
         World world = Bukkit.getWorld(sep[0]);
         double x = Double.parseDouble(sep[1]);
@@ -543,6 +612,36 @@ public class ActionUtils {
     }
 
     public static void summon(String actionLine) {
+        if (SchedulerUtil.isFolia()) {
+            Location location = parseSummonLocation(actionLine);
+            if (location != null) {
+                ConditionalEvents plugin = ConditionalEventsAPI.getPlugin();
+                SchedulerUtil.runForLocation(plugin, location, () -> summonUnchecked(actionLine));
+                return;
+            }
+        }
+        summonUnchecked(actionLine);
+    }
+
+    private static Location parseSummonLocation(String actionLine) {
+        String[] sep = actionLine.replace("summon: ", "").split(";");
+        for (String property : sep) {
+            if (property.startsWith("location:")) {
+                String[] locationSplit = property.replace("location:", "").split(",");
+                World w = Bukkit.getWorld(locationSplit[3]);
+                if (w == null) {
+                    return null;
+                }
+                return new Location(w,
+                        Double.parseDouble(locationSplit[0]),
+                        Double.parseDouble(locationSplit[1]),
+                        Double.parseDouble(locationSplit[2]));
+            }
+        }
+        return null;
+    }
+
+    private static void summonUnchecked(String actionLine) {
         // summon: location:<x>,<y>,<z>,<world>;entity:<id>,<property>:<value>
         // custom_name:<value>
         // health:<value>
@@ -914,10 +1013,17 @@ public class ActionUtils {
 
         InterruptEventManager interruptEventManager = ConditionalEventsAPI.getPlugin().getInterruptEventManager();
         final WrappedTask[] taskHolder = new WrappedTask[1];
-        WrappedTask task = SchedulerUtil.runTaskLater(executedEvent.getPlugin(), () -> {
+        Runnable continueActions = () -> {
             interruptEventManager.removeTask(taskHolder[0]);
             executedEvent.continueWithActions();
-        }, timeSeconds * 20L);
+        };
+        WrappedTask task;
+        if (SchedulerUtil.isFolia() && executedEvent.getPlayer() != null) {
+            task = SchedulerUtil.runDelayedForEntity(executedEvent.getPlugin(), executedEvent.getPlayer(),
+                    continueActions, timeSeconds * 20L);
+        } else {
+            task = SchedulerUtil.runTaskLater(executedEvent.getPlugin(), continueActions, timeSeconds * 20L);
+        }
         taskHolder[0] = task;
 
         interruptEventManager.addTask(
@@ -933,10 +1039,17 @@ public class ActionUtils {
 
         InterruptEventManager interruptEventManager = ConditionalEventsAPI.getPlugin().getInterruptEventManager();
         final WrappedTask[] taskHolder = new WrappedTask[1];
-        WrappedTask task = SchedulerUtil.runTaskLater(executedEvent.getPlugin(), () -> {
+        Runnable continueActions = () -> {
             interruptEventManager.removeTask(taskHolder[0]);
             executedEvent.continueWithActions();
-        }, timeTicks);
+        };
+        WrappedTask task;
+        if (SchedulerUtil.isFolia() && executedEvent.getPlayer() != null) {
+            task = SchedulerUtil.runDelayedForEntity(executedEvent.getPlugin(), executedEvent.getPlayer(),
+                    continueActions, timeTicks);
+        } else {
+            task = SchedulerUtil.runTaskLater(executedEvent.getPlugin(), continueActions, timeTicks);
+        }
         taskHolder[0] = task;
 
         interruptEventManager.addTask(
